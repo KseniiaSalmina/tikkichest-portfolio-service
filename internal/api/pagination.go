@@ -8,6 +8,7 @@ import (
 )
 
 type pageInfo struct {
+	number int
 	limit  int
 	offset int
 }
@@ -47,6 +48,6 @@ func (s *Server) getPageInfo(r *http.Request) (*pageInfo, error) {
 		return nil, errors.New("page number must be greater than 0")
 	}
 
-	result := pageInfo{limit: limit, offset: (page - 1) * limit}
+	result := pageInfo{number: page, limit: limit, offset: (page - 1) * limit}
 	return &result, nil
 }

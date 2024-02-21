@@ -82,6 +82,16 @@ func GetAllTags(ctx context.Context, db *pgxpool.Pool, limit, offset int) ([]mod
 	return tags, nil
 }
 
+func CountTagsPages(ctx context.Context, db *pgxpool.Pool) (int, error) {
+	var amount pgtype.Int8
+
+	if err := db.QueryRow(ctx, `SELECT COUNT(*) FROM tags`).Scan(&amount); err != nil {
+		return 0, fmt.Errorf("failed to count tags: %w", err)
+	}
+
+	return int(amount.Int), nil
+}
+
 func AddTagToCraft(ctx context.Context, db *pgxpool.Pool, craftID, tagID int) error {
 	if _, err := db.Exec(ctx, `INSERT INTO crafts_tags (craft_id, tag_id) VALUES ($1, $2)`, craftID, tagID); err != nil {
 		return fmt.Errorf("failed to add tag: %w", err)
@@ -196,6 +206,23 @@ func GetAllCraftsByPortfolioID(ctx context.Context, db *pgxpool.Pool, portfolioI
 	}
 
 	return crafts, nil
+}
+
+func CountCraftsPages(ctx context.Context, db *pgxpool.Pool, id int, isPortfolioID bool) (int, error) {
+	var amount pgtype.Int8
+	var err error
+
+	if isPortfolioID {
+		err = db.QueryRow(ctx, `SELECT COUNT(*) FROM crafts WHERE portfolio_id = $1`, id).Scan(&amount)
+	} else {
+		err = db.QueryRow(ctx, `SELECT COUNT(*) FROM crafts_tags WHERE tag_id = $1`, id).Scan(&amount)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("failed to count crafts: %w", err)
+	}
+
+	return int(amount.Int), nil
 }
 
 func getDetailsOfCraft(ctx context.Context, db *pgxpool.Pool, craftID int) ([]models.Tag, models.Content, error) {

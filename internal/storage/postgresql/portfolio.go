@@ -75,6 +75,15 @@ func GetAllCategories(ctx context.Context, db *pgxpool.Pool, limit, offset int) 
 	return categories, nil
 }
 
+func CountCategoriesPages(ctx context.Context, db *pgxpool.Pool) (int, error) {
+	var amount pgtype.Int8
+	if err := db.QueryRow(ctx, `SELECT COUNT(*) FROM categories`).Scan(&amount); err != nil {
+		return 0, fmt.Errorf("failed to count categories: %w", err)
+	}
+
+	return int(amount.Int), nil
+}
+
 func DeletePortfolio(ctx context.Context, db *pgxpool.Pool, portfolioID int) error {
 	if _, err := db.Exec(ctx, `DELETE FROM portfolios WHERE id=$1`, portfolioID); err != nil {
 		return fmt.Errorf("failed to delete portfolio: %w", err)
@@ -148,4 +157,23 @@ FROM portfolios JOIN categories ON portfolios.category_id = categories.id WHERE 
 	}
 
 	return portfolios, nil
+}
+
+func CountPortfoliosPages(ctx context.Context, db *pgxpool.Pool, filter PortfoliosFilter) (int, error) {
+	var sql string
+	switch {
+	case filter.Type == "":
+		sql = `SELECT COUNT(*) FROM categories`
+	case filter.Type == ByProfileID || filter.Type == ByCategoryID:
+		sql = `SELECT COUNT(*) FROM categories WHERE ` + string(filter.Type) + strconv.Itoa(filter.ID)
+	default:
+		return 0, errors.New("failed to count portfolios: incorrect filter")
+	}
+
+	var amount pgtype.Int8
+	if err := db.QueryRow(ctx, sql).Scan(&amount); err != nil {
+		return 0, fmt.Errorf("failed to count portfolios: %w", err)
+	}
+
+	return int(amount.Int), nil
 }

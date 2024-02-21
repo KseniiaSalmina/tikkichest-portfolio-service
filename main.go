@@ -5,6 +5,7 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 
+	_ "github.com/KseniiaSalmina/tikkichest-portfolio-service/docs"
 	app "github.com/KseniiaSalmina/tikkichest-portfolio-service/internal"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/config"
 )
@@ -20,6 +21,11 @@ func init() {
 	}
 }
 
+// @title Tikkichest portfolio service
+// @version 1.0.0
+// @description part of tikkichest
+// @host localhost:8088
+// @BasePath /
 func main() {
 	application, err := app.NewApplication(cfg)
 	if err != nil {
