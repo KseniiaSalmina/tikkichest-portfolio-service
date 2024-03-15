@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/storage/postgresql"
 	"github.com/uptrace/bunrouter"
 	"net/http"
 
@@ -34,11 +35,6 @@ func (s *Server) getPortfoliosHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	filterType := r.FormValue("filter")
-	filter, err := validation.PortfoliosFilter(filterType, id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 
 	page, err := s.getPageInfo(r)
 	if err != nil {
@@ -46,15 +42,20 @@ func (s *Server) getPortfoliosHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	portfolios, pagesAmount, err := s.databaseConnector.GetAllPortfolios(r.Context(), page.limit, page.offset, *filter)
+	portfolios, pagesAmount, err := s.databaseConnector.GetAllPortfolios(r.Context(), page.limit, page.offset, id, postgresql.PortfoliosFilterType(filterType))
 	if err != nil {
 		response_errors.StatusCodeByErrorWriter(err, w, true)
 		return
 	}
 
-	response := models.PortfoliosPage{Portfolios: portfolios, PageNo: page.number, Limit: page.limit, PagesAmount: pagesAmount}
+	response := models.PortfoliosPage{
+		Portfolios:  portfolios,
+		PageNo:      page.number,
+		Limit:       page.limit,
+		PagesAmount: pagesAmount,
+	}
 
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 // @Summary Get portfolio
@@ -80,7 +81,7 @@ func (s *Server) getPortfolioByIDHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	json.NewEncoder(w).Encode(portfolio)
+	_ = json.NewEncoder(w).Encode(portfolio)
 }
 
 // @Summary Post portfolio
@@ -112,7 +113,7 @@ func (s *Server) postPortfolioHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(portfolioID)
+	_ = json.NewEncoder(w).Encode(portfolioID)
 }
 
 // @Summary Patch portfolio
@@ -204,7 +205,7 @@ func (s *Server) postCategoryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(id)
+	_ = json.NewEncoder(w).Encode(id)
 }
 
 // @Summary Delete category
@@ -257,7 +258,7 @@ func (s *Server) getCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 
 	response := models.CategoriesPage{Categories: categories, PageNo: page.number, Limit: page.limit, PagesAmount: pagesAmount}
 
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 // @Summary Get crafts by portfolio id
@@ -294,7 +295,7 @@ func (s *Server) getCraftsByPortfolioIDHandler(w http.ResponseWriter, r *http.Re
 
 	response := models.CraftsPage{Crafts: crafts, PageNo: page.number, Limit: page.limit, PagesAmount: pagesAmount}
 
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 // @Summary Get craft
@@ -320,7 +321,7 @@ func (s *Server) getCraftHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(craft)
+	_ = json.NewEncoder(w).Encode(craft)
 }
 
 // @Summary Post craft
@@ -355,7 +356,7 @@ func (s *Server) postCraftHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(craftID)
+	_ = json.NewEncoder(w).Encode(craftID)
 }
 
 // @Summary Post tag patch craft
@@ -366,7 +367,7 @@ func (s *Server) postCraftHandler(w http.ResponseWriter, r *http.Request) {
 // @Success 200
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /portfolios/{id}/crafts/{craftID}/tag/{tagID} [post]
+// @Router /portfolios/{id}/crafts/{craftID}/tags/{tagID} [post]
 func (s *Server) postTagPatchCraftHandler(w http.ResponseWriter, r *http.Request) {
 	craftIdStr, _ := bunrouter.ParamsFromContext(r.Context()).Get("craftID")
 	craftID, err := validation.ID(craftIdStr)
@@ -398,7 +399,7 @@ func (s *Server) postTagPatchCraftHandler(w http.ResponseWriter, r *http.Request
 // @Success 200
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /portfolios/{id}/crafts/{craftID}/tag/{tagID} [delete]
+// @Router /portfolios/{id}/crafts/{craftID}/tags/{tagID} [delete]
 func (s *Server) deleteTagPatchCraftHandler(w http.ResponseWriter, r *http.Request) {
 	craftIdStr, _ := bunrouter.ParamsFromContext(r.Context()).Get("craftID")
 	craftID, err := validation.ID(craftIdStr)
@@ -513,7 +514,7 @@ func (s *Server) getCraftsByTagIDHandler(w http.ResponseWriter, r *http.Request)
 
 	response := models.CraftsPage{Crafts: crafts, PageNo: page.number, Limit: page.limit, PagesAmount: pagesAmount}
 
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 // @Summary Get tags
@@ -542,7 +543,7 @@ func (s *Server) getTagsHandler(w http.ResponseWriter, r *http.Request) {
 
 	response := models.TagsPage{Tags: tags, PageNo: page.number, Limit: page.limit, PagesAmount: pagesAmount}
 
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 // @Summary Post tag
@@ -569,7 +570,7 @@ func (s *Server) postTagHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(id)
+	_ = json.NewEncoder(w).Encode(id)
 }
 
 // @Summary Delete tag
@@ -633,7 +634,7 @@ func (s *Server) postContentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(id)
+	_ = json.NewEncoder(w).Encode(id)
 }
 
 // @Summary Delete content

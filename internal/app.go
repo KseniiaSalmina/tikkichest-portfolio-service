@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"os/signal"
 	"syscall"
@@ -16,7 +15,7 @@ import (
 
 type Application struct {
 	cfg          config.Application
-	db           *pgxpool.Pool
+	db           *postgresql.DB
 	dbConnector  *connector.PostgresConnector
 	server       *api.Server
 	closeCtx     context.Context

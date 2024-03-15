@@ -15,14 +15,14 @@ type CategoriesPage struct {
 }
 
 type CraftsPage struct {
-	Crafts      []Craft `json:"portfolios"`
+	Crafts      []Craft `json:"crafts"`
 	PageNo      int     `json:"page_number"`
 	Limit       int     `json:"limit"`
 	PagesAmount int     `json:"pages_amount"`
 }
 
 type TagsPage struct {
-	Tags        []Tag `json:"portfolios"`
+	Tags        []Tag `json:"tags"`
 	PageNo      int   `json:"page_number"`
 	Limit       int   `json:"limit"`
 	PagesAmount int   `json:"pages_amount"`

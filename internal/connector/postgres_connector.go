@@ -3,27 +3,25 @@ package connector
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
-
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/models"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/storage/postgresql"
 )
 
 type PostgresConnector struct {
-	db *pgxpool.Pool
+	db *postgresql.DB
 }
 
-func NewPostgresConnector(db *pgxpool.Pool) *PostgresConnector {
+func NewPostgresConnector(db *postgresql.DB) *PostgresConnector {
 	return &PostgresConnector{db: db}
 }
 
-func (pc *PostgresConnector) GetAllPortfolios(ctx context.Context, limit int, offset int, filter postgresql.PortfoliosFilter) ([]models.Portfolio, int, error) {
-	portfolios, err := postgresql.GetAllPortfolios(ctx, pc.db, limit, offset, filter)
+func (pc *PostgresConnector) GetAllPortfolios(ctx context.Context, limit int, offset int, id int, filterType postgresql.PortfoliosFilterType) ([]models.Portfolio, int, error) {
+	portfolios, err := pc.db.GetAllPortfolios(ctx, limit, offset, id, filterType)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to get data from database: %w", err)
 	}
 
-	rowsAmount, err := postgresql.CountPortfoliosPages(ctx, pc.db, filter)
+	rowsAmount, err := pc.db.CountPortfoliosPages(ctx, id, filterType)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count pages: %w", err)
 	}
@@ -39,36 +37,36 @@ func (pc *PostgresConnector) GetAllPortfolios(ctx context.Context, limit int, of
 }
 
 func (pc *PostgresConnector) GetPortfolioByID(ctx context.Context, portfolioID int) (*models.Portfolio, error) {
-	return postgresql.GetPortfolioByID(ctx, pc.db, portfolioID)
+	return pc.db.GetPortfolioByID(ctx, portfolioID)
 }
 
 func (pc *PostgresConnector) CreatePortfolio(ctx context.Context, portfolio models.Portfolio) (int, error) {
-	return postgresql.CreatePortfolio(ctx, pc.db, portfolio)
+	return pc.db.CreatePortfolio(ctx, portfolio)
 }
 
 func (pc *PostgresConnector) PatchPortfolio(ctx context.Context, portfolio models.Portfolio) error {
-	return postgresql.PatchPortfolio(ctx, pc.db, portfolio)
+	return pc.db.PatchPortfolio(ctx, portfolio)
 }
 
 func (pc *PostgresConnector) DeletePortfolio(ctx context.Context, portfolioID int) error {
-	return postgresql.DeletePortfolio(ctx, pc.db, portfolioID)
+	return pc.db.DeletePortfolio(ctx, portfolioID)
 }
 
 func (pc *PostgresConnector) CreateCategory(ctx context.Context, name string) (int, error) {
-	return postgresql.CreateCategory(ctx, pc.db, name)
+	return pc.db.CreateCategory(ctx, name)
 }
 
 func (pc *PostgresConnector) DeleteCategory(ctx context.Context, id int) error {
-	return postgresql.DeleteCategory(ctx, pc.db, id)
+	return pc.db.DeleteCategory(ctx, id)
 }
 
 func (pc *PostgresConnector) GetAllCategories(ctx context.Context, limit int, offset int) ([]models.Category, int, error) {
-	categories, err := postgresql.GetAllCategories(ctx, pc.db, limit, offset)
+	categories, err := pc.db.GetAllCategories(ctx, limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to get data from database: %w", err)
 	}
 
-	rowsAmount, err := postgresql.CountCategoriesPages(ctx, pc.db)
+	rowsAmount, err := pc.db.CountCategoriesPages(ctx)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count pages: %w", err)
 	}
@@ -84,12 +82,12 @@ func (pc *PostgresConnector) GetAllCategories(ctx context.Context, limit int, of
 }
 
 func (pc *PostgresConnector) GetAllCraftsByPortfolioID(ctx context.Context, portfolioID int, limit int, offset int) ([]models.Craft, int, error) {
-	crafts, err := postgresql.GetAllCraftsByPortfolioID(ctx, pc.db, portfolioID, limit, offset)
+	crafts, err := pc.db.GetAllCraftsByPortfolioID(ctx, portfolioID, limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to get data from database: %w", err)
 	}
 
-	rowsAmount, err := postgresql.CountCraftsPages(ctx, pc.db, portfolioID, true)
+	rowsAmount, err := pc.db.CountCraftsPages(ctx, portfolioID, true)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count pages: %w", err)
 	}
@@ -105,36 +103,36 @@ func (pc *PostgresConnector) GetAllCraftsByPortfolioID(ctx context.Context, port
 }
 
 func (pc *PostgresConnector) GetCraftByID(ctx context.Context, craftID int) (*models.Craft, error) {
-	return postgresql.GetCraftByID(ctx, pc.db, craftID)
+	return pc.db.GetCraftByID(ctx, craftID)
 }
 
 func (pc *PostgresConnector) CreateCraft(ctx context.Context, portfolioID int, craft models.Craft) (int, error) {
-	return postgresql.CreateCraft(ctx, pc.db, portfolioID, craft)
+	return pc.db.CreateCraft(ctx, portfolioID, craft)
 }
 
 func (pc *PostgresConnector) AddTagToCraft(ctx context.Context, craftID int, tagID int) error {
-	return postgresql.AddTagToCraft(ctx, pc.db, craftID, tagID)
+	return pc.db.AddTagToCraft(ctx, craftID, tagID)
 }
 
 func (pc *PostgresConnector) DeleteTagFromCraft(ctx context.Context, craftID int, tagID int) error {
-	return postgresql.DeleteTagFromCraft(ctx, pc.db, craftID, tagID)
+	return pc.db.DeleteTagFromCraft(ctx, craftID, tagID)
 }
 
 func (pc *PostgresConnector) PatchCraft(ctx context.Context, craft models.Craft) error {
-	return postgresql.PatchCraft(ctx, pc.db, craft)
+	return pc.db.PatchCraft(ctx, craft)
 }
 
 func (pc *PostgresConnector) DeleteCraft(ctx context.Context, id int) error {
-	return postgresql.DeleteCraft(ctx, pc.db, id)
+	return pc.db.DeleteCraft(ctx, id)
 }
 
 func (pc *PostgresConnector) GetAllCraftsByTagID(ctx context.Context, tagID int, limit int, offset int) ([]models.Craft, int, error) {
-	crafts, err := postgresql.GetAllCraftsByTagID(ctx, pc.db, tagID, limit, offset)
+	crafts, err := pc.db.GetAllCraftsByTagID(ctx, tagID, limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to get data from database: %w", err)
 	}
 
-	rowsAmount, err := postgresql.CountCraftsPages(ctx, pc.db, tagID, false)
+	rowsAmount, err := pc.db.CountCraftsPages(ctx, tagID, false)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count pages: %w", err)
 	}
@@ -150,12 +148,12 @@ func (pc *PostgresConnector) GetAllCraftsByTagID(ctx context.Context, tagID int,
 }
 
 func (pc *PostgresConnector) GetAllTags(ctx context.Context, limit int, offset int) ([]models.Tag, int, error) {
-	tags, err := postgresql.GetAllTags(ctx, pc.db, limit, offset)
+	tags, err := pc.db.GetAllTags(ctx, limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to get data from database: %w", err)
 	}
 
-	rowsAmount, err := postgresql.CountTagsPages(ctx, pc.db)
+	rowsAmount, err := pc.db.CountTagsPages(ctx)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count pages: %w", err)
 	}
@@ -171,21 +169,21 @@ func (pc *PostgresConnector) GetAllTags(ctx context.Context, limit int, offset i
 }
 
 func (pc *PostgresConnector) CreateTag(ctx context.Context, name string) (int, error) {
-	return postgresql.CreateTag(ctx, pc.db, name)
+	return pc.db.CreateTag(ctx, name)
 }
 
 func (pc *PostgresConnector) DeleteTag(ctx context.Context, id int) error {
-	return postgresql.DeleteTag(ctx, pc.db, id)
+	return pc.db.DeleteTag(ctx, id)
 }
 
 func (pc *PostgresConnector) CreateContent(ctx context.Context, craftID int, content models.Content) (int, error) {
-	return postgresql.CreateContent(ctx, pc.db, craftID, content)
+	return pc.db.CreateContent(ctx, craftID, content)
 }
 
 func (pc *PostgresConnector) DeleteContent(ctx context.Context, id int) error {
-	return postgresql.DeleteContent(ctx, pc.db, id)
+	return pc.db.DeleteContent(ctx, id)
 }
 
 func (pc *PostgresConnector) PatchContent(ctx context.Context, content models.Content) error {
-	return postgresql.PatchContent(ctx, pc.db, content)
+	return pc.db.PatchContent(ctx, content)
 }
