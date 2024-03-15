@@ -54,7 +54,7 @@ func (a *Application) bootstrap() error {
 }
 
 func (a *Application) initDatabase() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second) // TODO: correct time
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	db, err := postgresql.NewDB(ctx, a.cfg.Storage.Postgres)

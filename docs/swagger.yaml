@@ -50,16 +50,16 @@ definitions:
     type: object
   models.CraftsPage:
     properties:
+      crafts:
+        items:
+          $ref: '#/definitions/models.Craft'
+        type: array
       limit:
         type: integer
       page_number:
         type: integer
       pages_amount:
         type: integer
-      portfolios:
-        items:
-          $ref: '#/definitions/models.Craft'
-        type: array
     type: object
   models.Portfolio:
     properties:
@@ -106,7 +106,7 @@ definitions:
         type: integer
       pages_amount:
         type: integer
-      portfolios:
+      tags:
         items:
           $ref: '#/definitions/models.Tag'
         type: array
@@ -599,7 +599,7 @@ paths:
       summary: Patch content
       tags:
       - contents
-  /portfolios/{id}/crafts/{craftID}/tag/{tagID}:
+  /portfolios/{id}/crafts/{craftID}/tags/{tagID}:
     delete:
       description: delete tag from the craft
       parameters:

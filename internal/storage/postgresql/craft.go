@@ -15,7 +15,7 @@ func (db *DB) CreateCraft(ctx context.Context, portfolioID int, craft models.Cra
 		return 0, fmt.Errorf("failed to create craft: transaction error: %w", err)
 	}
 
-	defer tx.Rollback(ctx) //TODO: прикрутить логгер или убрать логирование ошибки
+	defer tx.Rollback(ctx)
 
 	var craftID pgtype.Int8
 	if err = tx.QueryRow(ctx, `INSERT INTO crafts (portfolio_id, name, description) VALUES ($1, $2, $3) RETURNING id`, portfolioID, craft.Name, craft.Description).Scan(&craftID); err != nil {

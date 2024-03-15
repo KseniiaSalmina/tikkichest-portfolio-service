@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/pgtype"
-	"log"
 	"strings"
 
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/models"
@@ -16,11 +15,7 @@ func (db *DB) CreatePortfolio(ctx context.Context, portfolio models.Portfolio) (
 		return 0, fmt.Errorf("failed to create portfolio: transaction error: %w", err)
 	}
 
-	defer func() {
-		if err := tx.Rollback(ctx); err != nil {
-			log.Println(err)
-		}
-	}() // TODO: прикрутить логгер или убрать логирование ошибки
+	defer tx.Rollback(ctx)
 
 	var id pgtype.Int8
 	if err = tx.QueryRow(ctx, `INSERT INTO portfolios (profile_id, name, category_id, description) VALUES ($1, $2, $3, $4) RETURNING id`, portfolio.ProfileID, portfolio.Name, portfolio.Category.ID, portfolio.Description).Scan(&id); err != nil {

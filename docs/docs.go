@@ -744,7 +744,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/portfolios/{id}/crafts/{craftID}/tag/{tagID}": {
+        "/portfolios/{id}/crafts/{craftID}/tags/{tagID}": {
             "post": {
                 "description": "add tag to the craft",
                 "tags": [
@@ -1077,6 +1077,12 @@ const docTemplate = `{
         "models.CraftsPage": {
             "type": "object",
             "properties": {
+                "crafts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Craft"
+                    }
+                },
                 "limit": {
                     "type": "integer"
                 },
@@ -1085,12 +1091,6 @@ const docTemplate = `{
                 },
                 "pages_amount": {
                     "type": "integer"
-                },
-                "portfolios": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Craft"
-                    }
                 }
             }
         },
@@ -1163,7 +1163,7 @@ const docTemplate = `{
                 "pages_amount": {
                     "type": "integer"
                 },
-                "portfolios": {
+                "tags": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.Tag"
