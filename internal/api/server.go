@@ -60,17 +60,17 @@ func NewServer(cfg config.Server, connector Connector) *Server {
 	router.GET("/portfolios/:id/crafts", s.getCraftsByPortfolioIDHandler)
 	router.GET("/portfolios/:id/crafts/:craftID", s.getCraftHandler)
 	router.POST("/portfolios/:id/crafts", s.postCraftHandler)
-	router.POST("/portfolios/:id/crafts/:craftID/tags/:tagID", s.postTagPatchCraftHandler)     // TODO correct path
-	router.DELETE("/portfolios/:id/crafts/:craftID/tags/:tagID", s.deleteTagPatchCraftHandler) // TODO correct path
-	router.PATCH("/portfolios/:id/crafts/:craftID", s.patchCraftHandler)                       // TODO убрать из пути айдишники, т.к. их можно пихнуть в общий json?
+	router.POST("/portfolios/:id/crafts/:craftID/tags/:tagID", s.postTagPatchCraftHandler)     
+	router.DELETE("/portfolios/:id/crafts/:craftID/tags/:tagID", s.deleteTagPatchCraftHandler) 
+	router.PATCH("/portfolios/:id/crafts/:craftID", s.patchCraftHandler)                       
 	router.DELETE("/portfolios/:id/crafts/:craftID", s.deleteCraftHandler)
-	router.GET("/tags/:id/crafts", s.getCraftsByTagIDHandler) // TODO correct path
+	router.GET("/tags/:id/crafts", s.getCraftsByTagIDHandler) 
 	router.GET("/tags", s.getTagsHandler)
 	router.POST("/tags", s.postTagHandler)
 	router.DELETE("/tags/:id", s.deleteTagHandler)
 	router.POST("/portfolios/:id/crafts/:craftID/contents", s.postContentHandler)
 	router.DELETE("/portfolios/:id/crafts/:craftID/contents/:contentID", s.deleteContentHandler)
-	router.PATCH("/portfolios/:id/crafts/:craftID/contents/:contentID", s.patchContentHandler) // TODO убрать из пути айдишники, т.к. их можно пихнуть в общий json?
+	router.PATCH("/portfolios/:id/crafts/:craftID/contents/:contentID", s.patchContentHandler) 
 
 	swagHandler := httpSwagger.Handler(httpSwagger.URL("/swagger/doc.json"))
 	router.GET("/swagger/*path", swagHandler)
@@ -96,7 +96,7 @@ func (s *Server) Run() {
 }
 
 func (s *Server) Shutdown() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second) // TODO: correct time
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second) 
 	defer cancel()
 	return s.httpServer.Shutdown(ctx)
 }
