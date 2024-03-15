@@ -12,6 +12,10 @@ import (
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/models"
 )
 
+type DB struct {
+	*mongo.Collection
+}
+
 func NewDB(cfg config.Mongo) (*mongo.Collection, error) {
 	var connectStr string
 	var connectOpt options.ClientOptions

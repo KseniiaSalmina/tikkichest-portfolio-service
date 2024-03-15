@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/api/response_errors"
-	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/storage/postgresql"
 )
 
 func ID(idStr string) (int, error) {
@@ -22,19 +21,4 @@ func ID(idStr string) (int, error) {
 	}
 
 	return id, nil
-}
-
-func PortfoliosFilter(filterType string, id int) (*postgresql.PortfoliosFilter, error) {
-	var filter postgresql.PortfoliosFilter
-	switch filterType {
-	case "":
-	case "ByProfileID":
-		filter = postgresql.PortfoliosFilter{ID: id, Type: postgresql.ByProfileID}
-	case "ByCategoryID":
-		filter = postgresql.PortfoliosFilter{ID: id, Type: postgresql.ByCategoryID}
-	default:
-		return nil, response_errors.ErrIncorrectPortfoliosFilterType
-	}
-
-	return &filter, nil
 }

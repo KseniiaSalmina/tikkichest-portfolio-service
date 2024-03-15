@@ -8,7 +8,11 @@ import (
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/config"
 )
 
-func NewDB(ctx context.Context, cfg config.Postgres) (*pgxpool.Pool, error) {
+type DB struct {
+	db *pgxpool.Pool
+}
+
+func NewDB(ctx context.Context, cfg config.Postgres) (*DB, error) {
 	connstr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Database)
 
 	db, err := pgxpool.New(ctx, connstr)
@@ -20,7 +24,13 @@ func NewDB(ctx context.Context, cfg config.Postgres) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	return db, nil
+	return &DB{
+		db: db,
+	}, nil
+}
+
+func (db *DB) Close() {
+	db.db.Close()
 }
 
 func GetProfileIDByPortfolio() {} // TODO: для перехода на профиль автора портфолио

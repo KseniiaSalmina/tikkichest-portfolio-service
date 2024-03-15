@@ -14,7 +14,7 @@ import (
 )
 
 type Connector interface {
-	GetAllPortfolios(ctx context.Context, limit int, offset int, filter postgresql.PortfoliosFilter) ([]models.Portfolio, int, error)
+	GetAllPortfolios(ctx context.Context, limit int, offset int, id int, filterType postgresql.PortfoliosFilterType) ([]models.Portfolio, int, error)
 	GetPortfolioByID(ctx context.Context, portfolioID int) (*models.Portfolio, error)
 	CreatePortfolio(ctx context.Context, portfolio models.Portfolio) (int, error)
 	PatchPortfolio(ctx context.Context, portfolio models.Portfolio) error
@@ -60,9 +60,9 @@ func NewServer(cfg config.Server, connector Connector) *Server {
 	router.GET("/portfolios/:id/crafts", s.getCraftsByPortfolioIDHandler)
 	router.GET("/portfolios/:id/crafts/:craftID", s.getCraftHandler)
 	router.POST("/portfolios/:id/crafts", s.postCraftHandler)
-	router.POST("/portfolios/:id/crafts/:craftID/tag/:tagID", s.postTagPatchCraftHandler)     // TODO correct path
-	router.DELETE("/portfolios/:id/crafts/:craftID/tag/:tagID", s.deleteTagPatchCraftHandler) // TODO correct path
-	router.PATCH("/portfolios/:id/crafts/:craftID", s.patchCraftHandler)                      // TODO убрать из пути айдишники, т.к. их можно пихнуть в общий json?
+	router.POST("/portfolios/:id/crafts/:craftID/tags/:tagID", s.postTagPatchCraftHandler)     // TODO correct path
+	router.DELETE("/portfolios/:id/crafts/:craftID/tags/:tagID", s.deleteTagPatchCraftHandler) // TODO correct path
+	router.PATCH("/portfolios/:id/crafts/:craftID", s.patchCraftHandler)                       // TODO убрать из пути айдишники, т.к. их можно пихнуть в общий json?
 	router.DELETE("/portfolios/:id/crafts/:craftID", s.deleteCraftHandler)
 	router.GET("/tags/:id/crafts", s.getCraftsByTagIDHandler) // TODO correct path
 	router.GET("/tags", s.getTagsHandler)
