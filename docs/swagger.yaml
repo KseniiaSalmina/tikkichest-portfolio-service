@@ -116,35 +116,8 @@ info:
   contact: {}
   description: part of tikkichest
   title: Tikkichest portfolio service
-  version: 1.0.0
+  version: 1.1.0
 paths:
-  //portfolios/{id}/crafts/{craftID}:
-    get:
-      description: get craft by its id
-      parameters:
-      - description: craft id
-        in: query
-        name: craftID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.Craft'
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Get craft
-      tags:
-      - crafts
   /categories:
     get:
       description: get all categories
@@ -229,7 +202,169 @@ paths:
       summary: Delete category
       tags:
       - categories
-  /portfolios:
+  /notifications/{userID}:
+    delete:
+      consumes:
+      - application/json
+      description: turn off notifications for selected user
+      parameters:
+      - description: profile id
+        in: path
+        name: userID
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Notifications mode off
+      tags:
+      - notifications
+    post:
+      consumes:
+      - application/json
+      description: turn on notifications for selected user
+      parameters:
+      - description: profile id
+        in: path
+        name: userID
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Notifications mode on
+      tags:
+      - notifications
+  /tags:
+    get:
+      description: get all tags
+      parameters:
+      - description: page number
+        in: query
+        name: page
+        type: integer
+      - description: limit records by page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TagsPage'
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get tags
+      tags:
+      - tags
+    post:
+      consumes:
+      - application/json
+      description: create new tag, return its id
+      parameters:
+      - description: tag name required
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/models.Tag'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Post tag
+      tags:
+      - tags
+  /tags/{id}:
+    delete:
+      description: delete tag by its id
+      parameters:
+      - description: tag id
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Delete tag
+      tags:
+      - tags
+  /tags/{id}/crafts:
+    get:
+      description: get all crafts by tag id
+      parameters:
+      - description: tag id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CraftsPage'
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get crafts by tag
+      tags:
+      - crafts
+  /users/{userID}/portfolios:
     get:
       description: get portfolios (all, by user id or by category id)
       parameters:
@@ -301,7 +436,7 @@ paths:
       summary: Post portfolio
       tags:
       - portfolios
-  /portfolios/{id}:
+  /users/{userID}/portfolios/{id}:
     delete:
       description: delete portfolio by its id
       parameters:
@@ -314,6 +449,12 @@ paths:
         name: id
         required: true
         type: integer
+      - description: profile id
+        in: body
+        name: user_id
+        required: true
+        schema:
+          type: integer
       responses:
         "200":
           description: OK
@@ -384,7 +525,7 @@ paths:
       summary: Patch portfolio
       tags:
       - portfolios
-  /portfolios/{id}/crafts:
+  /users/{userID}/portfolios/{id}/crafts:
     get:
       description: get all crafts by portfolio id
       parameters:
@@ -426,8 +567,13 @@ paths:
       - application/json
       description: create new craft, return its id
       parameters:
+      - description: profile id
+        in: path
+        name: userID
+        required: true
+        type: integer
       - description: portfolio id
-        in: query
+        in: path
         name: id
         required: true
         type: integer
@@ -455,12 +601,17 @@ paths:
       summary: Post craft
       tags:
       - crafts
-  /portfolios/{id}/crafts/{craftID}:
+  /users/{userID}/portfolios/{id}/crafts/{craftID}:
     delete:
       description: delete craft by its id
       parameters:
+      - description: profile id
+        in: path
+        name: userID
+        required: true
+        type: integer
       - description: craft id
-        in: query
+        in: path
         name: craftID
         required: true
         type: integer
@@ -478,25 +629,53 @@ paths:
       summary: Delete craft
       tags:
       - crafts
+    get:
+      description: get craft by its id
+      parameters:
+      - description: craft id
+        in: path
+        name: craftID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Craft'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get craft
+      tags:
+      - crafts
     patch:
       consumes:
       - application/json
       description: update craft by its id
       parameters:
+      - description: profile id
+        in: path
+        name: userID
+        required: true
+        type: integer
       - description: craft id
-        in: query
+        in: path
         name: craftID
         required: true
         type: integer
-      - in: query
-        name: craft_description
-        type: string
-      - in: query
-        name: craft_id
-        type: integer
-      - in: query
-        name: craft_name
-        type: string
+      - description: updated craft, info without changes is also required
+        in: body
+        name: craft
+        required: true
+        schema:
+          $ref: '#/definitions/models.Craft'
       responses:
         "200":
           description: OK
@@ -511,14 +690,19 @@ paths:
       summary: Patch craft
       tags:
       - crafts
-  /portfolios/{id}/crafts/{craftID}/contents:
+  /users/{userID}/portfolios/{id}/crafts/{craftID}/contents:
     post:
       consumes:
       - application/json
       description: create new content, return its id
       parameters:
+      - description: profile id
+        in: path
+        name: userID
+        required: true
+        type: integer
       - description: craft id
-        in: query
+        in: path
         name: craftID
         required: true
         type: integer
@@ -546,12 +730,17 @@ paths:
       summary: Post content
       tags:
       - contents
-  /portfolios/{id}/crafts/{craftID}/contents/{contentID}:
+  /users/{userID}/portfolios/{id}/crafts/{craftID}/contents/{contentID}:
     delete:
       description: delete content by its id
       parameters:
+      - description: profile id
+        in: path
+        name: userID
+        required: true
+        type: integer
       - description: content id
-        in: query
+        in: path
         name: contentID
         required: true
         type: integer
@@ -574,8 +763,13 @@ paths:
       - application/json
       description: update content by its id
       parameters:
+      - description: profile id
+        in: path
+        name: userID
+        required: true
+        type: integer
       - description: content id
-        in: query
+        in: path
         name: contentID
         required: true
         type: integer
@@ -599,17 +793,22 @@ paths:
       summary: Patch content
       tags:
       - contents
-  /portfolios/{id}/crafts/{craftID}/tags/{tagID}:
+  /users/{userID}/portfolios/{id}/crafts/{craftID}/tags/{tagID}:
     delete:
       description: delete tag from the craft
       parameters:
+      - description: profile id
+        in: path
+        name: userID
+        required: true
+        type: integer
       - description: craft id
-        in: query
+        in: path
         name: craftID
         required: true
         type: integer
       - description: tag id
-        in: query
+        in: path
         name: tagID
         required: true
         type: integer
@@ -630,6 +829,11 @@ paths:
     post:
       description: add tag to the craft
       parameters:
+      - description: profile id
+        in: path
+        name: userID
+        required: true
+        type: integer
       - description: craft id
         in: query
         name: craftID
@@ -652,119 +856,6 @@ paths:
           schema:
             type: string
       summary: Post tag patch craft
-      tags:
-      - crafts
-  /tags:
-    get:
-      description: get all tags
-      parameters:
-      - description: page number
-        in: query
-        name: page
-        type: integer
-      - description: limit records by page
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.TagsPage'
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Get tags
-      tags:
-      - tags
-    post:
-      consumes:
-      - application/json
-      description: create new tag, return its id
-      parameters:
-      - description: tag name required
-        in: body
-        name: tag
-        required: true
-        schema:
-          $ref: '#/definitions/models.Tag'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Post tag
-      tags:
-      - tags
-  /tags/{id}:
-    delete:
-      description: delete tag by its id
-      parameters:
-      - description: tag id
-        in: query
-        name: id
-        required: true
-        type: integer
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Delete tag
-      tags:
-      - tags
-  /tags/{id}/crafts:
-    get:
-      description: get all crafts by tag id
-      parameters:
-      - description: tag id
-        in: query
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.CraftsPage'
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Get crafts by tag
       tags:
       - crafts
 swagger: "2.0"

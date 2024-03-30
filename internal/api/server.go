@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/uptrace/bunrouter"
 	"log"
@@ -36,41 +37,59 @@ type Connector interface {
 	CreateContent(ctx context.Context, craftID int, content models.Content) (int, error)
 	DeleteContent(ctx context.Context, id int) error
 	PatchContent(ctx context.Context, content models.Content) error
+	NotificationsOn(ctx context.Context, userID int) error
+	NotificationsOff(ctx context.Context, userID int) error
+	IsNotificationsOn(ctx context.Context, userID int) (bool, error)
 }
 
 type Server struct {
 	databaseConnector Connector
+	notifier          Notifier
 	httpServer        *http.Server
 }
 
-func NewServer(cfg config.Server, connector Connector) *Server {
+type Notifier interface {
+	Notify(userID int, obj notifier.Object, objID int, change notifier.Change)
+}
+
+func NewServer(cfg config.Server, connector Connector, notifier Notifier) *Server {
 	s := &Server{
 		databaseConnector: connector,
+		notifier:          notifier,
 	}
 
 	router := bunrouter.New().Compat()
-	router.GET("/portfolios", s.getPortfoliosHandler)
-	router.GET("/portfolios/:id", s.getPortfolioByIDHandler)
-	router.POST("/portfolios", s.postPortfolioHandler)
-	router.PATCH("/portfolios/:id", s.patchPortfolioHandler)
-	router.DELETE("/portfolios/:id", s.deletePortfolioHandler)
+	router.GET("/users/:userID/portfolios", s.getPortfoliosHandler)
+	router.GET("/users/:userID/portfolios/:id", s.getPortfolioByIDHandler)
+	router.POST("/users/:userID/portfolios", s.postPortfolioHandler)
+	router.PATCH("/users/:userID/portfolios/:id", s.patchPortfolioHandler)
+	router.DELETE("/users/:userID/portfolios/:id", s.deletePortfolioHandler)
+
 	router.POST("/categories", s.postCategoryHandler)
 	router.DELETE("/categories/:id", s.deleteCategoryHandler)
 	router.GET("/categories", s.getCategoriesHandler)
-	router.GET("/portfolios/:id/crafts", s.getCraftsByPortfolioIDHandler)
-	router.GET("/portfolios/:id/crafts/:craftID", s.getCraftHandler)
-	router.POST("/portfolios/:id/crafts", s.postCraftHandler)
-	router.POST("/portfolios/:id/crafts/:craftID/tags/:tagID", s.postTagPatchCraftHandler)     
-	router.DELETE("/portfolios/:id/crafts/:craftID/tags/:tagID", s.deleteTagPatchCraftHandler) 
-	router.PATCH("/portfolios/:id/crafts/:craftID", s.patchCraftHandler)                       
-	router.DELETE("/portfolios/:id/crafts/:craftID", s.deleteCraftHandler)
-	router.GET("/tags/:id/crafts", s.getCraftsByTagIDHandler) 
+
+	router.GET("/users/:userID/portfolios/:id/crafts", s.getCraftsByPortfolioIDHandler)
+	router.GET("/users/:userID/portfolios/:id/crafts/:craftID", s.getCraftHandler)
+	router.POST("/users/:userID/portfolios/:id/crafts", s.postCraftHandler)
+
+	router.POST("/users/:userID/portfolios/:id/crafts/:craftID/tags/:tagID", s.postTagPatchCraftHandler)
+	router.DELETE("/users/:userID/portfolios/:id/crafts/:craftID/tags/:tagID", s.deleteTagPatchCraftHandler)
+
+	router.PATCH("/users/:userID/portfolios/:id/crafts/:craftID", s.patchCraftHandler)
+	router.DELETE("/users/:userID/portfolios/:id/crafts/:craftID", s.deleteCraftHandler)
+
+	router.GET("/tags/:id/crafts", s.getCraftsByTagIDHandler)
 	router.GET("/tags", s.getTagsHandler)
 	router.POST("/tags", s.postTagHandler)
 	router.DELETE("/tags/:id", s.deleteTagHandler)
-	router.POST("/portfolios/:id/crafts/:craftID/contents", s.postContentHandler)
-	router.DELETE("/portfolios/:id/crafts/:craftID/contents/:contentID", s.deleteContentHandler)
-	router.PATCH("/portfolios/:id/crafts/:craftID/contents/:contentID", s.patchContentHandler) 
+
+	router.POST("/users/:userID/portfolios/:id/crafts/:craftID/contents", s.postContentHandler)
+	router.DELETE("/users/:userID/portfolios/:id/crafts/:craftID/contents/:contentID", s.deleteContentHandler)
+	router.PATCH("/users/:userID/portfolios/:id/crafts/:craftID/contents/:contentID", s.patchContentHandler)
+
+	router.POST("notifications/:userID", s.notificationsOn)
+	router.DELETE("notifications/:userID", s.notificationsOff)
 
 	swagHandler := httpSwagger.Handler(httpSwagger.URL("/swagger/doc.json"))
 	router.GET("/swagger/*path", swagHandler)
@@ -96,7 +115,7 @@ func (s *Server) Run() {
 }
 
 func (s *Server) Shutdown() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second) 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	return s.httpServer.Shutdown(ctx)
 }

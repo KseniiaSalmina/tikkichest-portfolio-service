@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier"
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier/sender/kafka"
 	"log"
 	"os/signal"
 	"syscall"
@@ -17,6 +19,8 @@ type Application struct {
 	cfg          config.Application
 	db           *postgresql.DB
 	dbConnector  *connector.PostgresConnector
+	notifier *notifier.Notifier
+	sender *kafka.ProducerManager
 	server       *api.Server
 	closeCtx     context.Context
 	closeCtxFunc context.CancelFunc
@@ -44,11 +48,13 @@ func (a *Application) bootstrap() error {
 
 	//init services
 	a.initConnector()
-
-	//init controllers
-	if err := a.initServer(); err != nil {
+	if err := a.initSender(); err != nil {
 		return err
 	}
+	a.initNotifier()
+
+	//init controllers
+	a.initServer()
 
 	return nil
 }
@@ -72,16 +78,31 @@ func (a *Application) initConnector() {
 	a.dbConnector = connector.NewPostgresConnector(a.db)
 }
 
-func (a *Application) initServer() error {
-	s := api.NewServer(a.cfg.Server, a.dbConnector)
+func (a *Application) initSender() error {
+	sender, err := kafka.NewProducerManager(a.cfg.Kafka)
+	if err != nil {
+		log.Println(err) // TODO: logger
+		return err
+	}
+
+	a.sender = sender
+	return nil
+}
+
+func (a *Application) initNotifier() {
+	a.notifier = notifier.NewNotifier(a.sender)
+}
+
+func (a *Application) initServer() {
+	s := api.NewServer(a.cfg.Server, a.dbConnector, a.notifier)
 
 	a.server = s
-	return nil
 }
 
 func (a *Application) Run() {
 	defer a.stop()
 
+	a.sender.Run(a.closeCtx)
 	a.server.Run()
 
 	<-a.closeCtx.Done()
@@ -93,6 +114,10 @@ func (a *Application) stop() {
 		log.Printf("incorrect closing of server: %s", err.Error()) // TODO: logger
 	} else {
 		log.Print("server closed") // TODO: logger
+	}
+
+	if err := a.sender.Shutdown(); err != nil {
+		log.Print(err) // TODO: logger
 	}
 
 	a.db.Close()

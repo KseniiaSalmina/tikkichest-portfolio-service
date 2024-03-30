@@ -22,7 +22,7 @@ func init() {
 }
 
 // @title Tikkichest portfolio service
-// @version 1.0.0
+// @version 1.1.0
 // @description part of tikkichest
 // @host localhost:8088
 // @BasePath /
