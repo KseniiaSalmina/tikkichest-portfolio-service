@@ -19,8 +19,8 @@ type Application struct {
 	cfg          config.Application
 	db           *postgresql.DB
 	dbConnector  *connector.PostgresConnector
-	notifier *notifier.Notifier
-	sender *kafka.ProducerManager
+	notifier     *notifier.Notifier
+	sender       *kafka.ProducerManager
 	server       *api.Server
 	closeCtx     context.Context
 	closeCtxFunc context.CancelFunc
