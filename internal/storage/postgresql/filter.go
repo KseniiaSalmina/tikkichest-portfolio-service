@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"fmt"
+
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/api/response_errors"
 )
 

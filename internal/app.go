@@ -2,8 +2,6 @@ package app
 
 import (
 	"context"
-	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier"
-	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier/sender/kafka"
 	"log"
 	"os/signal"
 	"syscall"
@@ -12,6 +10,8 @@ import (
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/api"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/config"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/connector"
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier"
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier/sender/kafka"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/storage/postgresql"
 )
 

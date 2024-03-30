@@ -3,8 +3,10 @@ package postgresql
 import (
 	"context"
 	"fmt"
-	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/models"
+
 	"github.com/jackc/pgx/pgtype"
+
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/models"
 )
 
 func (db *DB) CreateContent(ctx context.Context, craftID int, content models.Content) (int, error) {

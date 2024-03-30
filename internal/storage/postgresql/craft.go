@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/models"
+
 	"github.com/jackc/pgx/pgtype"
 	"github.com/jackc/pgx/v5"
+
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/models"
 )
 
 func (db *DB) CreateCraft(ctx context.Context, portfolioID int, craft models.Craft) (int, error) {

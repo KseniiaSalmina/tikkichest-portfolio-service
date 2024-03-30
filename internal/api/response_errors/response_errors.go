@@ -2,8 +2,9 @@ package response_errors
 
 import (
 	"errors"
-	"github.com/jackc/pgx/v5"
 	"net/http"
+
+	"github.com/jackc/pgx/v5"
 )
 
 var ErrMissingID = errors.New("missing id: id is required")

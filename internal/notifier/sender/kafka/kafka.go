@@ -3,11 +3,13 @@ package kafka
 import (
 	"context"
 	"fmt"
-	"github.com/IBM/sarama"
-	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/config"
 	"log"
 	"strconv"
 	"sync"
+
+	"github.com/IBM/sarama"
+
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/config"
 )
 
 type ProducerManager struct {

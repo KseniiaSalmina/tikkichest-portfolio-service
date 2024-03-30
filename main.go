@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
-	"log"
 
 	_ "github.com/KseniiaSalmina/tikkichest-portfolio-service/docs"
 	app "github.com/KseniiaSalmina/tikkichest-portfolio-service/internal"

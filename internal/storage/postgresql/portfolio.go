@@ -3,8 +3,9 @@ package postgresql
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/pgtype"
 	"strings"
+
+	"github.com/jackc/pgx/pgtype"
 
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/models"
 )

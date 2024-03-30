@@ -2,15 +2,16 @@ package api
 
 import (
 	"context"
-	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier"
-	httpSwagger "github.com/swaggo/http-swagger"
-	"github.com/uptrace/bunrouter"
 	"log"
 	"net/http"
 	"time"
 
+	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/uptrace/bunrouter"
+
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/config"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/models"
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/storage/postgresql"
 )
 

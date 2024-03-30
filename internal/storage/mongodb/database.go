@@ -3,10 +3,11 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
 
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/config"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/models"

@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+
+	"github.com/uptrace/bunrouter"
+
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/api/response_errors"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/api/validation"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/models"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/storage/postgresql"
-	"github.com/uptrace/bunrouter"
-	"net/http"
 )
 
 // @Summary Get portfolios

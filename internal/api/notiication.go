@@ -2,8 +2,9 @@ package api
 
 import (
 	"context"
-	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier"
 	"log"
+
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier"
 )
 
 func (s *Server) Notify(ctx context.Context, userID int, obj notifier.Object, objID int, change notifier.Change) {
