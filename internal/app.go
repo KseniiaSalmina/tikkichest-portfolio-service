@@ -10,20 +10,20 @@ import (
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/api"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/config"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/connector"
-	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier"
-	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier/sender/kafka"
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/sender"
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/sender/kafka"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/storage/postgresql"
 )
 
 type Application struct {
-	cfg          config.Application
-	db           *postgresql.DB
-	dbConnector  *connector.PostgresConnector
-	notifier     *notifier.Notifier
-	sender       *kafka.ProducerManager
-	server       *api.Server
-	closeCtx     context.Context
-	closeCtxFunc context.CancelFunc
+	cfg           config.Application
+	db            *postgresql.DB
+	dbConnector   *connector.PostgresConnector
+	senderManager *sender.Manager
+	sender        *kafka.ProducerManager
+	server        *api.Server
+	closeCtx      context.Context
+	closeCtxFunc  context.CancelFunc
 }
 
 func NewApplication(cfg config.Application) (*Application, error) {
@@ -51,7 +51,7 @@ func (a *Application) bootstrap() error {
 	if err := a.initSender(); err != nil {
 		return err
 	}
-	a.initNotifier()
+	a.initSenderManager()
 
 	//init controllers
 	a.initServer()
@@ -89,12 +89,12 @@ func (a *Application) initSender() error {
 	return nil
 }
 
-func (a *Application) initNotifier() {
-	a.notifier = notifier.NewNotifier(a.sender)
+func (a *Application) initSenderManager() {
+	a.senderManager = sender.NewManager(a.sender)
 }
 
 func (a *Application) initServer() {
-	s := api.NewServer(a.cfg.Server, a.dbConnector, a.notifier)
+	s := api.NewServer(a.cfg.Server, a.dbConnector, a.senderManager)
 
 	a.server = s
 }

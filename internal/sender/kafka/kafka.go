@@ -2,7 +2,9 @@ package kafka
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/sender"
 	"log"
 	"strconv"
 	"sync"
@@ -44,11 +46,17 @@ func (pm *ProducerManager) Run(ctx context.Context) {
 	}
 }
 
-func (pm *ProducerManager) SendNotification(id int, notification string) {
+func (pm *ProducerManager) Send(id int, event sender.Event) {
+	eventJSON, err := json.Marshal(event)
+	if err != nil {
+		log.Println(err) //TODO logger
+		return
+	}
+
 	message := sarama.ProducerMessage{
 		Topic: pm.topic,
 		Key:   sarama.StringEncoder(strconv.Itoa(id)),
-		Value: sarama.StringEncoder(notification)}
+		Value: sarama.ByteEncoder(eventJSON)}
 
 	pm.producer.Input() <- &message
 }

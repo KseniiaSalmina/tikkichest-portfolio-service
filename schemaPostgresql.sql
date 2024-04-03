@@ -54,7 +54,3 @@ CREATE TABLE IF NOT EXISTS contents (
 );
 
 CREATE INDEX IF NOT EXISTS craft_id_contents_idx ON contents(craft_id);
-
-CREATE TABLE IF NOT EXISTS notifications (
-    "profile_id" INT PRIMARY KEY
-)

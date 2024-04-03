@@ -202,20 +202,38 @@ paths:
       summary: Delete category
       tags:
       - categories
-  /notifications/{userID}:
-    delete:
-      consumes:
-      - application/json
-      description: turn off notifications for selected user
+  /profiles/{profileID}/portfolios:
+    get:
+      description: get portfolios (all, by profile id or by category id)
       parameters:
-      - description: profile id
-        in: path
-        name: userID
-        required: true
+      - description: page number
+        in: query
+        name: page
         type: integer
+      - description: limit records by page
+        in: query
+        name: limit
+        type: integer
+      - description: profile or category id
+        in: query
+        name: id
+        type: integer
+      - description: filtered by
+        enum:
+        - ByProfileID
+        - ByCategoryID
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/models.PortfoliosPage'
+        "204":
+          description: No Content
         "400":
           description: Bad Request
           schema:
@@ -224,17 +242,54 @@ paths:
           description: Internal Server Error
           schema:
             type: string
-      summary: Notifications mode off
+      summary: Get portfolios
       tags:
-      - notifications
+      - portfolios
     post:
       consumes:
       - application/json
-      description: turn on notifications for selected user
+      description: create new portfolio, return its id
       parameters:
+      - description: portfolio without crafts, profile id is required
+        in: body
+        name: portfolio
+        required: true
+        schema:
+          $ref: '#/definitions/models.Portfolio'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Post portfolio
+      tags:
+      - portfolios
+  /profiles/{profileID}/portfolios/{id}:
+    delete:
+      description: delete portfolio by its id
+      parameters:
+      - description: page number
+        in: query
+        name: page
+        type: integer
+      - description: portfolio id
+        in: path
+        name: id
+        required: true
+        type: integer
       - description: profile id
         in: path
-        name: userID
+        name: profileID
         required: true
         type: integer
       responses:
@@ -248,9 +303,398 @@ paths:
           description: Internal Server Error
           schema:
             type: string
-      summary: Notifications mode on
+      summary: Delete portfolio
       tags:
-      - notifications
+      - portfolios
+    get:
+      description: get portfolio by its id
+      parameters:
+      - description: portfolio id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Portfolio'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get portfolio
+      tags:
+      - portfolios
+    patch:
+      consumes:
+      - application/json
+      description: update portfolio by its id
+      parameters:
+      - description: portfolio id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: updated portfolio, info without changes is also required
+        in: body
+        name: portfolio
+        required: true
+        schema:
+          $ref: '#/definitions/models.Portfolio'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Patch portfolio
+      tags:
+      - portfolios
+  /profiles/{profileID}/portfolios/{id}/crafts:
+    get:
+      description: get all crafts by portfolio id
+      parameters:
+      - description: page number
+        in: query
+        name: page
+        type: integer
+      - description: limit records by page
+        in: query
+        name: limit
+        type: integer
+      - description: portfolio id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CraftsPage'
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get crafts by portfolio id
+      tags:
+      - crafts
+    post:
+      consumes:
+      - application/json
+      description: create new craft, return its id
+      parameters:
+      - description: profile id
+        in: path
+        name: profileID
+        required: true
+        type: integer
+      - description: portfolio id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: craft without contents
+        in: body
+        name: craft
+        required: true
+        schema:
+          $ref: '#/definitions/models.Craft'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Post craft
+      tags:
+      - crafts
+  /profiles/{profileID}/portfolios/{id}/crafts/{craftID}:
+    delete:
+      description: delete craft by its id
+      parameters:
+      - description: profile id
+        in: path
+        name: profileID
+        required: true
+        type: integer
+      - description: craft id
+        in: path
+        name: craftID
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Delete craft
+      tags:
+      - crafts
+    get:
+      description: get craft by its id
+      parameters:
+      - description: craft id
+        in: path
+        name: craftID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Craft'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get craft
+      tags:
+      - crafts
+    patch:
+      consumes:
+      - application/json
+      description: update craft by its id
+      parameters:
+      - description: profile id
+        in: path
+        name: profileID
+        required: true
+        type: integer
+      - description: craft id
+        in: path
+        name: craftID
+        required: true
+        type: integer
+      - description: updated craft, info without changes is also required
+        in: body
+        name: craft
+        required: true
+        schema:
+          $ref: '#/definitions/models.Craft'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Patch craft
+      tags:
+      - crafts
+  /profiles/{profileID}/portfolios/{id}/crafts/{craftID}/contents:
+    post:
+      consumes:
+      - application/json
+      description: create new content, return its id
+      parameters:
+      - description: profile id
+        in: path
+        name: profileID
+        required: true
+        type: integer
+      - description: craft id
+        in: path
+        name: craftID
+        required: true
+        type: integer
+      - description: content
+        in: body
+        name: content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Content'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PortfoliosPage'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Post content
+      tags:
+      - contents
+  /profiles/{profileID}/portfolios/{id}/crafts/{craftID}/contents/{contentID}:
+    delete:
+      description: delete content by its id
+      parameters:
+      - description: profile id
+        in: path
+        name: profileID
+        required: true
+        type: integer
+      - description: content id
+        in: path
+        name: contentID
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Delete content
+      tags:
+      - contents
+    patch:
+      consumes:
+      - application/json
+      description: update content by its id
+      parameters:
+      - description: profile id
+        in: path
+        name: profileID
+        required: true
+        type: integer
+      - description: content id
+        in: path
+        name: contentID
+        required: true
+        type: integer
+      - description: updated content, info without changes is also required
+        in: body
+        name: content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Content'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Patch content
+      tags:
+      - contents
+  /profiles/{profileID}/portfolios/{id}/crafts/{craftID}/tags/{tagID}:
+    delete:
+      description: delete tag from the craft
+      parameters:
+      - description: profile id
+        in: path
+        name: profileID
+        required: true
+        type: integer
+      - description: craft id
+        in: path
+        name: craftID
+        required: true
+        type: integer
+      - description: tag id
+        in: path
+        name: tagID
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Delete tag patch craft
+      tags:
+      - crafts
+    post:
+      description: add tag to the craft
+      parameters:
+      - description: profile id
+        in: path
+        name: profileID
+        required: true
+        type: integer
+      - description: craft id
+        in: query
+        name: craftID
+        required: true
+        type: integer
+      - description: tag id
+        in: query
+        name: tagID
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Post tag patch craft
+      tags:
+      - crafts
   /tags:
     get:
       description: get all tags
@@ -362,500 +806,6 @@ paths:
           schema:
             type: string
       summary: Get crafts by tag
-      tags:
-      - crafts
-  /users/{userID}/portfolios:
-    get:
-      description: get portfolios (all, by user id or by category id)
-      parameters:
-      - description: page number
-        in: query
-        name: page
-        type: integer
-      - description: limit records by page
-        in: query
-        name: limit
-        type: integer
-      - description: user or category id
-        in: query
-        name: id
-        type: integer
-      - description: filtered by
-        enum:
-        - ByProfileID
-        - ByCategoryID
-        in: query
-        name: filter
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.PortfoliosPage'
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Get portfolios
-      tags:
-      - portfolios
-    post:
-      consumes:
-      - application/json
-      description: create new portfolio, return its id
-      parameters:
-      - description: portfolio without crafts, profile id is required
-        in: body
-        name: portfolio
-        required: true
-        schema:
-          $ref: '#/definitions/models.Portfolio'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Post portfolio
-      tags:
-      - portfolios
-  /users/{userID}/portfolios/{id}:
-    delete:
-      description: delete portfolio by its id
-      parameters:
-      - description: page number
-        in: query
-        name: page
-        type: integer
-      - description: portfolio id
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: profile id
-        in: body
-        name: user_id
-        required: true
-        schema:
-          type: integer
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Delete portfolio
-      tags:
-      - portfolios
-    get:
-      description: get portfolio by its id
-      parameters:
-      - description: portfolio id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.Portfolio'
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Get portfolio
-      tags:
-      - portfolios
-    patch:
-      consumes:
-      - application/json
-      description: update portfolio by its id
-      parameters:
-      - description: portfolio id
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: updated portfolio, info without changes is also required
-        in: body
-        name: portfolio
-        required: true
-        schema:
-          $ref: '#/definitions/models.Portfolio'
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Patch portfolio
-      tags:
-      - portfolios
-  /users/{userID}/portfolios/{id}/crafts:
-    get:
-      description: get all crafts by portfolio id
-      parameters:
-      - description: page number
-        in: query
-        name: page
-        type: integer
-      - description: limit records by page
-        in: query
-        name: limit
-        type: integer
-      - description: portfolio id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.CraftsPage'
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Get crafts by portfolio id
-      tags:
-      - crafts
-    post:
-      consumes:
-      - application/json
-      description: create new craft, return its id
-      parameters:
-      - description: profile id
-        in: path
-        name: userID
-        required: true
-        type: integer
-      - description: portfolio id
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: craft without contents
-        in: body
-        name: craft
-        required: true
-        schema:
-          $ref: '#/definitions/models.Craft'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Post craft
-      tags:
-      - crafts
-  /users/{userID}/portfolios/{id}/crafts/{craftID}:
-    delete:
-      description: delete craft by its id
-      parameters:
-      - description: profile id
-        in: path
-        name: userID
-        required: true
-        type: integer
-      - description: craft id
-        in: path
-        name: craftID
-        required: true
-        type: integer
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Delete craft
-      tags:
-      - crafts
-    get:
-      description: get craft by its id
-      parameters:
-      - description: craft id
-        in: path
-        name: craftID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.Craft'
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Get craft
-      tags:
-      - crafts
-    patch:
-      consumes:
-      - application/json
-      description: update craft by its id
-      parameters:
-      - description: profile id
-        in: path
-        name: userID
-        required: true
-        type: integer
-      - description: craft id
-        in: path
-        name: craftID
-        required: true
-        type: integer
-      - description: updated craft, info without changes is also required
-        in: body
-        name: craft
-        required: true
-        schema:
-          $ref: '#/definitions/models.Craft'
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Patch craft
-      tags:
-      - crafts
-  /users/{userID}/portfolios/{id}/crafts/{craftID}/contents:
-    post:
-      consumes:
-      - application/json
-      description: create new content, return its id
-      parameters:
-      - description: profile id
-        in: path
-        name: userID
-        required: true
-        type: integer
-      - description: craft id
-        in: path
-        name: craftID
-        required: true
-        type: integer
-      - description: content
-        in: body
-        name: content
-        required: true
-        schema:
-          $ref: '#/definitions/models.Content'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.PortfoliosPage'
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Post content
-      tags:
-      - contents
-  /users/{userID}/portfolios/{id}/crafts/{craftID}/contents/{contentID}:
-    delete:
-      description: delete content by its id
-      parameters:
-      - description: profile id
-        in: path
-        name: userID
-        required: true
-        type: integer
-      - description: content id
-        in: path
-        name: contentID
-        required: true
-        type: integer
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Delete content
-      tags:
-      - contents
-    patch:
-      consumes:
-      - application/json
-      description: update content by its id
-      parameters:
-      - description: profile id
-        in: path
-        name: userID
-        required: true
-        type: integer
-      - description: content id
-        in: path
-        name: contentID
-        required: true
-        type: integer
-      - description: updated content, info without changes is also required
-        in: body
-        name: content
-        required: true
-        schema:
-          $ref: '#/definitions/models.Content'
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Patch content
-      tags:
-      - contents
-  /users/{userID}/portfolios/{id}/crafts/{craftID}/tags/{tagID}:
-    delete:
-      description: delete tag from the craft
-      parameters:
-      - description: profile id
-        in: path
-        name: userID
-        required: true
-        type: integer
-      - description: craft id
-        in: path
-        name: craftID
-        required: true
-        type: integer
-      - description: tag id
-        in: path
-        name: tagID
-        required: true
-        type: integer
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Delete tag patch craft
-      tags:
-      - crafts
-    post:
-      description: add tag to the craft
-      parameters:
-      - description: profile id
-        in: path
-        name: userID
-        required: true
-        type: integer
-      - description: craft id
-        in: query
-        name: craftID
-        required: true
-        type: integer
-      - description: tag id
-        in: query
-        name: tagID
-        required: true
-        type: integer
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Post tag patch craft
       tags:
       - crafts
 swagger: "2.0"

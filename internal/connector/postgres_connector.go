@@ -188,15 +188,3 @@ func (pc *PostgresConnector) DeleteContent(ctx context.Context, id int) error {
 func (pc *PostgresConnector) PatchContent(ctx context.Context, content models.Content) error {
 	return pc.db.PatchContent(ctx, content)
 }
-
-func (pc *PostgresConnector) NotificationsOn(ctx context.Context, userID int) error {
-	return pc.db.NotificationsOn(ctx, userID)
-}
-
-func (pc *PostgresConnector) NotificationsOff(ctx context.Context, userID int) error {
-	return pc.db.NotificationsOff(ctx, userID)
-}
-
-func (pc *PostgresConnector) IsNotificationsOn(ctx context.Context, userID int) (bool, error) {
-	return pc.db.IsNotificationsOn(ctx, userID)
-}

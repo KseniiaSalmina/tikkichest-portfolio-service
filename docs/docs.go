@@ -143,21 +143,179 @@ const docTemplate = `{
                 }
             }
         },
-        "/notifications/{userID}": {
-            "post": {
-                "description": "turn on notifications for selected user",
-                "consumes": [
+        "/profiles/{profileID}/portfolios": {
+            "get": {
+                "description": "get portfolios (all, by profile id or by category id)",
+                "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "notifications"
+                    "portfolios"
                 ],
-                "summary": "Notifications mode on",
+                "summary": "Get portfolios",
                 "parameters": [
                     {
                         "type": "integer",
+                        "description": "page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit records by page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "profile or category id",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ByProfileID",
+                            "ByCategoryID"
+                        ],
+                        "type": "string",
+                        "description": "filtered by",
+                        "name": "filter",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PortfoliosPage"
+                        }
+                    },
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "create new portfolio, return its id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "portfolios"
+                ],
+                "summary": "Post portfolio",
+                "parameters": [
+                    {
+                        "description": "portfolio without crafts, profile id is required",
+                        "name": "portfolio",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Portfolio"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/profiles/{profileID}/portfolios/{id}": {
+            "get": {
+                "description": "get portfolio by its id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "portfolios"
+                ],
+                "summary": "Get portfolio",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "portfolio id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Portfolio"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "delete portfolio by its id",
+                "tags": [
+                    "portfolios"
+                ],
+                "summary": "Delete portfolio",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "portfolio id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
                         "description": "profile id",
-                        "name": "userID",
+                        "name": "profileID",
                         "in": "path",
                         "required": true
                     }
@@ -180,20 +338,526 @@ const docTemplate = `{
                     }
                 }
             },
-            "delete": {
-                "description": "turn off notifications for selected user",
+            "patch": {
+                "description": "update portfolio by its id",
                 "consumes": [
                     "application/json"
                 ],
                 "tags": [
-                    "notifications"
+                    "portfolios"
                 ],
-                "summary": "Notifications mode off",
+                "summary": "Patch portfolio",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "portfolio id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "updated portfolio, info without changes is also required",
+                        "name": "portfolio",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Portfolio"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/profiles/{profileID}/portfolios/{id}/crafts": {
+            "get": {
+                "description": "get all crafts by portfolio id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "crafts"
+                ],
+                "summary": "Get crafts by portfolio id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit records by page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "portfolio id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CraftsPage"
+                        }
+                    },
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "create new craft, return its id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "crafts"
+                ],
+                "summary": "Post craft",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "profile id",
-                        "name": "userID",
+                        "name": "profileID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "portfolio id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "craft without contents",
+                        "name": "craft",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Craft"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/profiles/{profileID}/portfolios/{id}/crafts/{craftID}": {
+            "get": {
+                "description": "get craft by its id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "crafts"
+                ],
+                "summary": "Get craft",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "craft id",
+                        "name": "craftID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Craft"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "delete craft by its id",
+                "tags": [
+                    "crafts"
+                ],
+                "summary": "Delete craft",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "profile id",
+                        "name": "profileID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "craft id",
+                        "name": "craftID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "update craft by its id",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "crafts"
+                ],
+                "summary": "Patch craft",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "profile id",
+                        "name": "profileID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "craft id",
+                        "name": "craftID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "updated craft, info without changes is also required",
+                        "name": "craft",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Craft"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/profiles/{profileID}/portfolios/{id}/crafts/{craftID}/contents": {
+            "post": {
+                "description": "create new content, return its id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contents"
+                ],
+                "summary": "Post content",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "profile id",
+                        "name": "profileID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "craft id",
+                        "name": "craftID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "content",
+                        "name": "content",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Content"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PortfoliosPage"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/profiles/{profileID}/portfolios/{id}/crafts/{craftID}/contents/{contentID}": {
+            "delete": {
+                "description": "delete content by its id",
+                "tags": [
+                    "contents"
+                ],
+                "summary": "Delete content",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "profile id",
+                        "name": "profileID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "content id",
+                        "name": "contentID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "update content by its id",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contents"
+                ],
+                "summary": "Patch content",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "profile id",
+                        "name": "profileID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "content id",
+                        "name": "contentID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "updated content, info without changes is also required",
+                        "name": "content",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Content"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/profiles/{profileID}/portfolios/{id}/crafts/{craftID}/tags/{tagID}": {
+            "post": {
+                "description": "add tag to the craft",
+                "tags": [
+                    "crafts"
+                ],
+                "summary": "Post tag patch craft",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "profile id",
+                        "name": "profileID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "craft id",
+                        "name": "craftID",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "tag id",
+                        "name": "tagID",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "delete tag from the craft",
+                "tags": [
+                    "crafts"
+                ],
+                "summary": "Delete tag patch craft",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "profile id",
+                        "name": "profileID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "craft id",
+                        "name": "craftID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "tag id",
+                        "name": "tagID",
                         "in": "path",
                         "required": true
                     }
@@ -373,746 +1037,6 @@ const docTemplate = `{
                     },
                     "204": {
                         "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{userID}/portfolios": {
-            "get": {
-                "description": "get portfolios (all, by user id or by category id)",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "portfolios"
-                ],
-                "summary": "Get portfolios",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "limit records by page",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "user or category id",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "ByProfileID",
-                            "ByCategoryID"
-                        ],
-                        "type": "string",
-                        "description": "filtered by",
-                        "name": "filter",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.PortfoliosPage"
-                        }
-                    },
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "create new portfolio, return its id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "portfolios"
-                ],
-                "summary": "Post portfolio",
-                "parameters": [
-                    {
-                        "description": "portfolio without crafts, profile id is required",
-                        "name": "portfolio",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Portfolio"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{userID}/portfolios/{id}": {
-            "get": {
-                "description": "get portfolio by its id",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "portfolios"
-                ],
-                "summary": "Get portfolio",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "portfolio id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Portfolio"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "delete portfolio by its id",
-                "tags": [
-                    "portfolios"
-                ],
-                "summary": "Delete portfolio",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "portfolio id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "profile id",
-                        "name": "user_id",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "description": "update portfolio by its id",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "portfolios"
-                ],
-                "summary": "Patch portfolio",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "portfolio id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "updated portfolio, info without changes is also required",
-                        "name": "portfolio",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Portfolio"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{userID}/portfolios/{id}/crafts": {
-            "get": {
-                "description": "get all crafts by portfolio id",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "crafts"
-                ],
-                "summary": "Get crafts by portfolio id",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "limit records by page",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "portfolio id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.CraftsPage"
-                        }
-                    },
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "create new craft, return its id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "crafts"
-                ],
-                "summary": "Post craft",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "profile id",
-                        "name": "userID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "portfolio id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "craft without contents",
-                        "name": "craft",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Craft"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{userID}/portfolios/{id}/crafts/{craftID}": {
-            "get": {
-                "description": "get craft by its id",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "crafts"
-                ],
-                "summary": "Get craft",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "craft id",
-                        "name": "craftID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Craft"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "delete craft by its id",
-                "tags": [
-                    "crafts"
-                ],
-                "summary": "Delete craft",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "profile id",
-                        "name": "userID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "craft id",
-                        "name": "craftID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "description": "update craft by its id",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "crafts"
-                ],
-                "summary": "Patch craft",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "profile id",
-                        "name": "userID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "craft id",
-                        "name": "craftID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "updated craft, info without changes is also required",
-                        "name": "craft",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Craft"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{userID}/portfolios/{id}/crafts/{craftID}/contents": {
-            "post": {
-                "description": "create new content, return its id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contents"
-                ],
-                "summary": "Post content",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "profile id",
-                        "name": "userID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "craft id",
-                        "name": "craftID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "content",
-                        "name": "content",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Content"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.PortfoliosPage"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{userID}/portfolios/{id}/crafts/{craftID}/contents/{contentID}": {
-            "delete": {
-                "description": "delete content by its id",
-                "tags": [
-                    "contents"
-                ],
-                "summary": "Delete content",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "profile id",
-                        "name": "userID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "content id",
-                        "name": "contentID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "description": "update content by its id",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contents"
-                ],
-                "summary": "Patch content",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "profile id",
-                        "name": "userID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "content id",
-                        "name": "contentID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "updated content, info without changes is also required",
-                        "name": "content",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Content"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{userID}/portfolios/{id}/crafts/{craftID}/tags/{tagID}": {
-            "post": {
-                "description": "add tag to the craft",
-                "tags": [
-                    "crafts"
-                ],
-                "summary": "Post tag patch craft",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "profile id",
-                        "name": "userID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "craft id",
-                        "name": "craftID",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "tag id",
-                        "name": "tagID",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "delete tag from the craft",
-                "tags": [
-                    "crafts"
-                ],
-                "summary": "Delete tag patch craft",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "profile id",
-                        "name": "userID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "craft id",
-                        "name": "craftID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "tag id",
-                        "name": "tagID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",

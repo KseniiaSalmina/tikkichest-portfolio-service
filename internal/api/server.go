@@ -11,7 +11,7 @@ import (
 
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/config"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/models"
-	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier"
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/sender"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/storage/postgresql"
 )
 
@@ -38,59 +38,53 @@ type Connector interface {
 	CreateContent(ctx context.Context, craftID int, content models.Content) (int, error)
 	DeleteContent(ctx context.Context, id int) error
 	PatchContent(ctx context.Context, content models.Content) error
-	NotificationsOn(ctx context.Context, userID int) error
-	NotificationsOff(ctx context.Context, userID int) error
-	IsNotificationsOn(ctx context.Context, userID int) (bool, error)
 }
 
 type Server struct {
 	databaseConnector Connector
-	notifier          Notifier
+	sender            Sender
 	httpServer        *http.Server
 }
 
-type Notifier interface {
-	Notify(userID int, obj notifier.Object, objID int, change notifier.Change)
+type Sender interface {
+	SendEvent(userID int, obj sender.Object, objID int, change sender.Change)
 }
 
-func NewServer(cfg config.Server, connector Connector, notifier Notifier) *Server {
+func NewServer(cfg config.Server, connector Connector, notifier Sender) *Server {
 	s := &Server{
 		databaseConnector: connector,
-		notifier:          notifier,
+		sender:            notifier,
 	}
 
 	router := bunrouter.New().Compat()
-	router.GET("/users/:userID/portfolios", s.getPortfoliosHandler)
-	router.GET("/users/:userID/portfolios/:id", s.getPortfolioByIDHandler)
-	router.POST("/users/:userID/portfolios", s.postPortfolioHandler)
-	router.PATCH("/users/:userID/portfolios/:id", s.patchPortfolioHandler)
-	router.DELETE("/users/:userID/portfolios/:id", s.deletePortfolioHandler)
+	router.GET("/profiles/:profileID/portfolios", s.getPortfoliosHandler)
+	router.GET("/profiles/:profileID/portfolios/:id", s.getPortfolioByIDHandler)
+	router.POST("/profiles/:profileID/portfolios", s.postPortfolioHandler)
+	router.PATCH("/profiles/:profileID/portfolios/:id", s.patchPortfolioHandler)
+	router.DELETE("/profiles/:profileID/portfolios/:id", s.deletePortfolioHandler)
 
 	router.POST("/categories", s.postCategoryHandler)
 	router.DELETE("/categories/:id", s.deleteCategoryHandler)
 	router.GET("/categories", s.getCategoriesHandler)
 
-	router.GET("/users/:userID/portfolios/:id/crafts", s.getCraftsByPortfolioIDHandler)
-	router.GET("/users/:userID/portfolios/:id/crafts/:craftID", s.getCraftHandler)
-	router.POST("/users/:userID/portfolios/:id/crafts", s.postCraftHandler)
+	router.GET("/profiles/:profileID/portfolios/:id/crafts", s.getCraftsByPortfolioIDHandler)
+	router.GET("/profiles/:profileID/portfolios/:id/crafts/:craftID", s.getCraftHandler)
+	router.POST("/profiles/:profileID/portfolios/:id/crafts", s.postCraftHandler)
 
-	router.POST("/users/:userID/portfolios/:id/crafts/:craftID/tags/:tagID", s.postTagPatchCraftHandler)
-	router.DELETE("/users/:userID/portfolios/:id/crafts/:craftID/tags/:tagID", s.deleteTagPatchCraftHandler)
+	router.POST("/profiles/:profileID/portfolios/:id/crafts/:craftID/tags/:tagID", s.postTagPatchCraftHandler)
+	router.DELETE("/profiles/:profileID/portfolios/:id/crafts/:craftID/tags/:tagID", s.deleteTagPatchCraftHandler)
 
-	router.PATCH("/users/:userID/portfolios/:id/crafts/:craftID", s.patchCraftHandler)
-	router.DELETE("/users/:userID/portfolios/:id/crafts/:craftID", s.deleteCraftHandler)
+	router.PATCH("/profiles/:profileID/portfolios/:id/crafts/:craftID", s.patchCraftHandler)
+	router.DELETE("/profiles/:profileID/portfolios/:id/crafts/:craftID", s.deleteCraftHandler)
 
 	router.GET("/tags/:id/crafts", s.getCraftsByTagIDHandler)
 	router.GET("/tags", s.getTagsHandler)
 	router.POST("/tags", s.postTagHandler)
 	router.DELETE("/tags/:id", s.deleteTagHandler)
 
-	router.POST("/users/:userID/portfolios/:id/crafts/:craftID/contents", s.postContentHandler)
-	router.DELETE("/users/:userID/portfolios/:id/crafts/:craftID/contents/:contentID", s.deleteContentHandler)
-	router.PATCH("/users/:userID/portfolios/:id/crafts/:craftID/contents/:contentID", s.patchContentHandler)
-
-	router.POST("notifications/:userID", s.notificationsOn)
-	router.DELETE("notifications/:userID", s.notificationsOff)
+	router.POST("/profiles/:profileID/portfolios/:id/crafts/:craftID/contents", s.postContentHandler)
+	router.DELETE("/profiles/:profileID/portfolios/:id/crafts/:craftID/contents/:contentID", s.deleteContentHandler)
+	router.PATCH("/profiles/:profileID/portfolios/:id/crafts/:craftID/contents/:contentID", s.patchContentHandler)
 
 	swagHandler := httpSwagger.Handler(httpSwagger.URL("/swagger/doc.json"))
 	router.GET("/swagger/*path", swagHandler)

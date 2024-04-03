@@ -11,23 +11,23 @@ import (
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/api/response_errors"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/api/validation"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/models"
-	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/notifier"
+	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/sender"
 	"github.com/KseniiaSalmina/tikkichest-portfolio-service/internal/storage/postgresql"
 )
 
 // @Summary Get portfolios
 // @Tags portfolios
-// @Description get portfolios (all, by user id or by category id)
+// @Description get portfolios (all, by profile id or by category id)
 // @Produce json
 // @Param page query int false "page number"
 // @Param limit query int false "limit records by page"
-// @Param id query int false "user or category id"
+// @Param id query int false "profile or category id"
 // @Param filter query string false "filtered by" Enums(ByProfileID, ByCategoryID)
 // @Success 200 {object} models.PortfoliosPage
 // @Success 204
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios [get]
+// @Router /profiles/{profileID}/portfolios [get]
 func (s *Server) getPortfoliosHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.FormValue("id")
 	id, err := validation.ID(idStr)
@@ -68,7 +68,7 @@ func (s *Server) getPortfoliosHandler(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} models.Portfolio
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios/{id} [get]
+// @Router /profiles/{profileID}/portfolios/{id} [get]
 func (s *Server) getPortfolioByIDHandler(w http.ResponseWriter, r *http.Request) {
 	idStr, _ := bunrouter.ParamsFromContext(r.Context()).Get("id")
 	id, err := validation.ID(idStr)
@@ -95,7 +95,7 @@ func (s *Server) getPortfolioByIDHandler(w http.ResponseWriter, r *http.Request)
 // @Success 200 {string} string
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios [post]
+// @Router /profiles/{profileID}/portfolios [post]
 func (s *Server) postPortfolioHandler(w http.ResponseWriter, r *http.Request) {
 	var portfolio models.Portfolio
 	defer r.Body.Close()
@@ -115,7 +115,7 @@ func (s *Server) postPortfolioHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.Notify(r.Context(), portfolio.ProfileID, notifier.Portfolio, portfolioID, notifier.CreateObj)
+	go s.sender.SendEvent(portfolio.ProfileID, sender.Portfolio, portfolioID, sender.CreateObj)
 
 	_ = json.NewEncoder(w).Encode(portfolioID)
 }
@@ -129,7 +129,7 @@ func (s *Server) postPortfolioHandler(w http.ResponseWriter, r *http.Request) {
 // @Success 200
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios/{id} [patch]
+// @Router /profiles/{profileID}/portfolios/{id} [patch]
 func (s *Server) patchPortfolioHandler(w http.ResponseWriter, r *http.Request) {
 	idStr, _ := bunrouter.ParamsFromContext(r.Context()).Get("id")
 	id, err := validation.ID(idStr)
@@ -151,7 +151,7 @@ func (s *Server) patchPortfolioHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.Notify(r.Context(), portfolio.ProfileID, notifier.Portfolio, portfolio.ID, notifier.UpdateObj)
+	go s.sender.SendEvent(portfolio.ProfileID, sender.Portfolio, portfolio.ID, sender.UpdateObj)
 
 	w.WriteHeader(http.StatusOK)
 	return
@@ -162,22 +162,24 @@ func (s *Server) patchPortfolioHandler(w http.ResponseWriter, r *http.Request) {
 // @Description delete portfolio by its id
 // @Param page query int false "page number"
 // @Param id path int true "portfolio id"
-// @Param user_id body int true  "profile id"
+// @Param profileID path int true "profile id"
 // @Success 200
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios/{id} [delete]
+// @Router /profiles/{profileID}/portfolios/{id} [delete]
 func (s *Server) deletePortfolioHandler(w http.ResponseWriter, r *http.Request) {
-	idStr, _ := bunrouter.ParamsFromContext(r.Context()).Get("id")
+	params := bunrouter.ParamsFromContext(r.Context())
+
+	idStr, _ := params.Get("id")
 	id, err := validation.ID(idStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	var userID int
-	defer r.Body.Close()
-	if err := json.NewDecoder(r.Body).Decode(&userID); err != nil {
+	profileIdStr, _ := params.Get("profileID")
+	profileID, err := validation.ID(profileIdStr)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -187,7 +189,7 @@ func (s *Server) deletePortfolioHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	go s.Notify(r.Context(), userID, notifier.Portfolio, id, notifier.DeleteObj)
+	go s.sender.SendEvent(profileID, sender.Portfolio, id, sender.DeleteObj)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -288,7 +290,7 @@ func (s *Server) getCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 // @Success 204
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios/{id}/crafts [get]
+// @Router /profiles/{profileID}/portfolios/{id}/crafts [get]
 func (s *Server) getCraftsByPortfolioIDHandler(w http.ResponseWriter, r *http.Request) {
 	idStr, _ := bunrouter.ParamsFromContext(r.Context()).Get("id")
 	id, err := validation.ID(idStr)
@@ -322,7 +324,7 @@ func (s *Server) getCraftsByPortfolioIDHandler(w http.ResponseWriter, r *http.Re
 // @Success 200 {object} models.Craft
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios/{id}/crafts/{craftID} [get]
+// @Router /profiles/{profileID}/portfolios/{id}/crafts/{craftID} [get]
 func (s *Server) getCraftHandler(w http.ResponseWriter, r *http.Request) {
 	idStr, _ := bunrouter.ParamsFromContext(r.Context()).Get("craftID")
 	id, err := validation.ID(idStr)
@@ -345,13 +347,13 @@ func (s *Server) getCraftHandler(w http.ResponseWriter, r *http.Request) {
 // @Description create new craft, return its id
 // @Accept json
 // @Produce json
-// @Param userID path int true "profile id"
+// @Param profileID path int true "profile id"
 // @Param id path int true "portfolio id"
 // @Param craft body models.Craft true "craft without contents"
 // @Success 200 {string} string
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios/{id}/crafts [post]
+// @Router /profiles/{profileID}/portfolios/{id}/crafts [post]
 func (s *Server) postCraftHandler(w http.ResponseWriter, r *http.Request) {
 	params := bunrouter.ParamsFromContext(r.Context())
 
@@ -362,8 +364,8 @@ func (s *Server) postCraftHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIdStr, _ := params.Get("userID")
-	userID, err := validation.ID(userIdStr)
+	profileIdStr, _ := params.Get("profileID")
+	profileID, err := validation.ID(profileIdStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -382,7 +384,7 @@ func (s *Server) postCraftHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.Notify(r.Context(), userID, notifier.Craft, craftID, notifier.CreateObj)
+	go s.sender.SendEvent(profileID, sender.Craft, craftID, sender.CreateObj)
 
 	_ = json.NewEncoder(w).Encode(craftID)
 }
@@ -390,13 +392,13 @@ func (s *Server) postCraftHandler(w http.ResponseWriter, r *http.Request) {
 // @Summary Post tag patch craft
 // @Tags crafts
 // @Description add tag to the craft
-// @Param userID path int true "profile id"
+// @Param profileID path int true "profile id"
 // @Param craftID query int true "craft id"
 // @Param tagID query int true "tag id"
 // @Success 200
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios/{id}/crafts/{craftID}/tags/{tagID} [post]
+// @Router /profiles/{profileID}/portfolios/{id}/crafts/{craftID}/tags/{tagID} [post]
 func (s *Server) postTagPatchCraftHandler(w http.ResponseWriter, r *http.Request) {
 	params := bunrouter.ParamsFromContext(r.Context())
 
@@ -407,8 +409,8 @@ func (s *Server) postTagPatchCraftHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	userIdStr, _ := params.Get("userID")
-	userID, err := validation.ID(userIdStr)
+	profileIdStr, _ := params.Get("profileID")
+	profileID, err := validation.ID(profileIdStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -426,7 +428,7 @@ func (s *Server) postTagPatchCraftHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	go s.Notify(r.Context(), userID, notifier.Craft, craftID, notifier.UpdateObj)
+	go s.sender.SendEvent(profileID, sender.Craft, craftID, sender.UpdateObj)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -434,13 +436,13 @@ func (s *Server) postTagPatchCraftHandler(w http.ResponseWriter, r *http.Request
 // @Summary Delete tag patch craft
 // @Tags crafts
 // @Description delete tag from the craft
-// @Param userID path int true "profile id"
+// @Param profileID path int true "profile id"
 // @Param craftID path int true "craft id"
 // @Param tagID path int true "tag id"
 // @Success 200
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios/{id}/crafts/{craftID}/tags/{tagID} [delete]
+// @Router /profiles/{profileID}/portfolios/{id}/crafts/{craftID}/tags/{tagID} [delete]
 func (s *Server) deleteTagPatchCraftHandler(w http.ResponseWriter, r *http.Request) {
 	params := bunrouter.ParamsFromContext(r.Context())
 
@@ -451,8 +453,8 @@ func (s *Server) deleteTagPatchCraftHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	userIdStr, _ := params.Get("userID")
-	userID, err := validation.ID(userIdStr)
+	profileIdStr, _ := params.Get("profileID")
+	profileID, err := validation.ID(profileIdStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -470,7 +472,7 @@ func (s *Server) deleteTagPatchCraftHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	go s.Notify(r.Context(), userID, notifier.Craft, craftID, notifier.UpdateObj)
+	go s.sender.SendEvent(profileID, sender.Craft, craftID, sender.UpdateObj)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -479,13 +481,13 @@ func (s *Server) deleteTagPatchCraftHandler(w http.ResponseWriter, r *http.Reque
 // @Tags crafts
 // @Description update craft by its id
 // @Accept json
-// @Param userID path int true "profile id"
+// @Param profileID path int true "profile id"
 // @Param craftID path int true "craft id"
 // @Param craft body models.Craft true "updated craft, info without changes is also required"
 // @Success 200
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios/{id}/crafts/{craftID} [patch]
+// @Router /profiles/{profileID}/portfolios/{id}/crafts/{craftID} [patch]
 func (s *Server) patchCraftHandler(w http.ResponseWriter, r *http.Request) {
 	params := bunrouter.ParamsFromContext(r.Context())
 
@@ -496,8 +498,8 @@ func (s *Server) patchCraftHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIdStr, _ := params.Get("userID")
-	userID, err := validation.ID(userIdStr)
+	profileIdStr, _ := params.Get("profileID")
+	profileID, err := validation.ID(profileIdStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -517,7 +519,7 @@ func (s *Server) patchCraftHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.Notify(r.Context(), userID, notifier.Craft, craft.ID, notifier.UpdateObj)
+	go s.sender.SendEvent(profileID, sender.Craft, craft.ID, sender.UpdateObj)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -525,12 +527,12 @@ func (s *Server) patchCraftHandler(w http.ResponseWriter, r *http.Request) {
 // @Summary Delete craft
 // @Tags crafts
 // @Description delete craft by its id
-// @Param userID path int true "profile id"
+// @Param profileID path int true "profile id"
 // @Param craftID path int true "craft id"
 // @Success 200
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios/{id}/crafts/{craftID} [delete]
+// @Router /profiles/{profileID}/portfolios/{id}/crafts/{craftID} [delete]
 func (s *Server) deleteCraftHandler(w http.ResponseWriter, r *http.Request) {
 	params := bunrouter.ParamsFromContext(r.Context())
 
@@ -541,8 +543,8 @@ func (s *Server) deleteCraftHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIdStr, _ := params.Get("userID")
-	userID, err := validation.ID(userIdStr)
+	profileIdStr, _ := params.Get("profileID")
+	profileID, err := validation.ID(profileIdStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -553,7 +555,7 @@ func (s *Server) deleteCraftHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.Notify(r.Context(), userID, notifier.Craft, id, notifier.DeleteObj)
+	go s.sender.SendEvent(profileID, sender.Craft, id, sender.DeleteObj)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -678,13 +680,13 @@ func (s *Server) deleteTagHandler(w http.ResponseWriter, r *http.Request) {
 // @Description create new content, return its id
 // @Accept json
 // @Produce json
-// @Param userID path int true "profile id"
+// @Param profileID path int true "profile id"
 // @Param craftID path int true "craft id"
 // @Param content body models.Content true "content"
 // @Success 200 {object} models.PortfoliosPage
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios/{id}/crafts/{craftID}/contents [post]
+// @Router /profiles/{profileID}/portfolios/{id}/crafts/{craftID}/contents [post]
 func (s *Server) postContentHandler(w http.ResponseWriter, r *http.Request) {
 	params := bunrouter.ParamsFromContext(r.Context())
 
@@ -695,8 +697,8 @@ func (s *Server) postContentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIdStr, _ := params.Get("userID")
-	userID, err := validation.ID(userIdStr)
+	profileIdStr, _ := params.Get("profileID")
+	profileID, err := validation.ID(profileIdStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -720,7 +722,7 @@ func (s *Server) postContentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.Notify(r.Context(), userID, notifier.Content, id, notifier.CreateObj)
+	go s.sender.SendEvent(profileID, sender.Content, id, sender.CreateObj)
 
 	_ = json.NewEncoder(w).Encode(id)
 }
@@ -728,12 +730,12 @@ func (s *Server) postContentHandler(w http.ResponseWriter, r *http.Request) {
 // @Summary Delete content
 // @Tags contents
 // @Description delete content by its id
-// @Param userID path int true "profile id"
+// @Param profileID path int true "profile id"
 // @Param contentID path int true "content id"
 // @Success 200
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios/{id}/crafts/{craftID}/contents/{contentID} [delete]
+// @Router /profiles/{profileID}/portfolios/{id}/crafts/{craftID}/contents/{contentID} [delete]
 func (s *Server) deleteContentHandler(w http.ResponseWriter, r *http.Request) {
 	params := bunrouter.ParamsFromContext(r.Context())
 
@@ -744,8 +746,8 @@ func (s *Server) deleteContentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIdStr, _ := params.Get("userID")
-	userID, err := validation.ID(userIdStr)
+	profileIdStr, _ := params.Get("profileID")
+	profileID, err := validation.ID(profileIdStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -756,7 +758,7 @@ func (s *Server) deleteContentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.Notify(r.Context(), userID, notifier.Content, id, notifier.DeleteObj)
+	go s.sender.SendEvent(profileID, sender.Content, id, sender.DeleteObj)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -765,13 +767,13 @@ func (s *Server) deleteContentHandler(w http.ResponseWriter, r *http.Request) {
 // @Tags contents
 // @Description update content by its id
 // @Accept json
-// @Param userID path int true "profile id"
+// @Param profileID path int true "profile id"
 // @Param contentID path int true "content id"
 // @Param content body models.Content true "updated content, info without changes is also required"
 // @Success 200
 // @Failure 400 {string} string
 // @Failure 500	{string} string
-// @Router /users/{userID}/portfolios/{id}/crafts/{craftID}/contents/{contentID} [patch]
+// @Router /profiles/{profileID}/portfolios/{id}/crafts/{craftID}/contents/{contentID} [patch]
 func (s *Server) patchContentHandler(w http.ResponseWriter, r *http.Request) {
 	params := bunrouter.ParamsFromContext(r.Context())
 
@@ -782,8 +784,8 @@ func (s *Server) patchContentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIdStr, _ := params.Get("userID")
-	userID, err := validation.ID(userIdStr)
+	profileIdStr, _ := params.Get("profileID")
+	profileID, err := validation.ID(profileIdStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -808,57 +810,7 @@ func (s *Server) patchContentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.Notify(r.Context(), userID, notifier.Content, content.ID, notifier.UpdateObj)
-
-	w.WriteHeader(http.StatusOK)
-}
-
-// @Summary Notifications mode on
-// @Tags notifications
-// @Description turn on notifications for selected user
-// @Accept json
-// @Param userID path int true "profile id"
-// @Success 200
-// @Failure 400 {string} string
-// @Failure 500	{string} string
-// @Router /notifications/{userID} [post]
-func (s *Server) notificationsOn(w http.ResponseWriter, r *http.Request) {
-	idStr, _ := bunrouter.ParamsFromContext(r.Context()).Get("id")
-	id, err := validation.ID(idStr)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if err := s.databaseConnector.NotificationsOn(r.Context(), id); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-}
-
-// @Summary Notifications mode off
-// @Tags notifications
-// @Description turn off notifications for selected user
-// @Accept json
-// @Param userID path int true "profile id"
-// @Success 200
-// @Failure 400 {string} string
-// @Failure 500	{string} string
-// @Router /notifications/{userID} [delete]
-func (s *Server) notificationsOff(w http.ResponseWriter, r *http.Request) {
-	idStr, _ := bunrouter.ParamsFromContext(r.Context()).Get("id")
-	id, err := validation.ID(idStr)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if err := s.databaseConnector.NotificationsOn(r.Context(), id); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	go s.sender.SendEvent(profileID, sender.Content, content.ID, sender.UpdateObj)
 
 	w.WriteHeader(http.StatusOK)
 }
