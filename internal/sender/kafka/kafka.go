@@ -17,7 +17,7 @@ import (
 type ProducerManager struct {
 	producer      sarama.AsyncProducer
 	topic         string
-	finishClosing *sync.WaitGroup
+	finishClosing sync.WaitGroup
 }
 
 func NewProducerManager(cfg config.Kafka) (*ProducerManager, error) {
@@ -27,23 +27,26 @@ func NewProducerManager(cfg config.Kafka) (*ProducerManager, error) {
 	}
 
 	return &ProducerManager{
-		producer: prod,
-		topic:    cfg.Topic,
+		producer:      prod,
+		topic:         cfg.Topic,
+		finishClosing: sync.WaitGroup{},
 	}, nil
 }
 
 func (pm *ProducerManager) Run(ctx context.Context) {
 	pm.finishClosing.Add(1)
-	defer pm.finishClosing.Done()
 
-	for {
-		select {
-		case err := <-pm.producer.Errors():
-			log.Println(err) // TODO: logger
-		case <-ctx.Done():
-			return
+	go func() {
+		defer pm.finishClosing.Done()
+		for {
+			select {
+			case err := <-pm.producer.Errors():
+				log.Println(err) // TODO: logger
+			case <-ctx.Done():
+				return
+			}
 		}
-	}
+	}()
 }
 
 func (pm *ProducerManager) Send(id int, event sender.Event) {

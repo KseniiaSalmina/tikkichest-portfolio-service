@@ -79,13 +79,13 @@ func (a *Application) initConnector() {
 }
 
 func (a *Application) initSender() error {
-	sender, err := kafka.NewProducerManager(a.cfg.Kafka)
+	send, err := kafka.NewProducerManager(a.cfg.Kafka)
 	if err != nil {
 		log.Println(err) // TODO: logger
 		return err
 	}
 
-	a.sender = sender
+	a.sender = send
 	return nil
 }
 
