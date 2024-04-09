@@ -74,7 +74,7 @@
 
 Методы, в теории возвращающие больше одного объекта, на самом деле вернут объект следующего вида:
 
-	{Object}    []{Object}   `json:"{objects}"` // objects - это portfolios, categories, crafts или tags
+	{Object}    []{Object}  `json:"{objects}"` // objects - это portfolios, categories, crafts или tags
 	PageNo      int         `json:"page_number"`
 	Limit       int         `json:"limit"`
 	PagesAmount int         `json:"pages_amount"`
