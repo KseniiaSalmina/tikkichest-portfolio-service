@@ -66,7 +66,7 @@
 	GET /tags/{id}/crafts - возвращает крафты по выбранному тэгу
 	GET /tags - возвращает все тэги
 	POST /tags - создаёт новый тэг
-	DELETE /tags/:id - удаляет тэг
+	DELETE /tags/{id} - удаляет тэг
 
 	POST /profiles/{profileID}/portfolios/{id}/crafts/{craftID}/contents - создаёт контент
 	DELETE /profiles/{profileID}/portfolios/{id}/crafts/{craftID}/contents/{contentID} - удаляет контент
